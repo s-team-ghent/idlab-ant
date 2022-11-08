@@ -64,7 +64,7 @@ class MuscleOxygenProfileMessage(ProfileMessage):
         return self.mfg_id
 
     def __str__(self):
-        return super().__str__() + ' SPO2: {0:.0f}g/dl, Sat: {}%'.format(self.total_hemoglobin, self.saturation_percentage)
+        return super().__str__() + f' SPO2: {self.total_hemoglobin:{0:.0f}}g/dl, Sat: {self.saturation_percentage}%'
 
     def json(self):
         msg = super().json()
