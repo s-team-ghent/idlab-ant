@@ -48,7 +48,9 @@ class RunningDynamicsProfileMessage(ProfileMessage):
             self.ground_contact_balance = gct_balance
             self.fractional_ground_contact_balance = frac_gct_balance
 
-        return self.ground_contact_balance + self.fractional_ground_contact_balance
+        if self.ground_contact_balance and self.fractional_ground_contact_balance:
+            return self.ground_contact_balance + self.fractional_ground_contact_balance
+        return None
 
     @lazyproperty
     def calculated_vertical_oscillation(self):
@@ -58,7 +60,10 @@ class RunningDynamicsProfileMessage(ProfileMessage):
             frac_oscillation = (self.msg.content[4] & 0b11000 >> 3)*0.25
             self.vertical_oscillation = oscillation_msb << 3 | oscillation_lsb
             self.fractional_vertical_oscillation = frac_oscillation
-        return self.vertical_oscillation + self.fractional_vertical_oscillation
+        if self.vertical_oscillation and self.fractional_vertical_oscillation:
+            return self.vertical_oscillation + self.fractional_vertical_oscillation
+        else:
+            return None
 
     @lazyproperty
     def calculated_gct(self):
@@ -76,7 +81,9 @@ class RunningDynamicsProfileMessage(ProfileMessage):
             frac_vertical_ratio = ((self.msg.content[3] & 0b11111000) >> 3 )*0.03125
             self.vertical_ratio = vertical_ratio_msb << 4 | vertical_ratio_lsb
             self.fractional_vertical_ratio = frac_vertical_ratio
-        return self.vertical_ratio + self.fractional_vertical_ratio
+        if self.vertical_ratio and self.fractional_vertical_ratio:
+            return self.vertical_ratio + self.fractional_vertical_ratio
+        return None
 
     @lazyproperty
     def calculated_stride_length(self):
@@ -101,7 +108,10 @@ class RunningDynamicsProfileMessage(ProfileMessage):
 
             self.stance_time = stance_time
             self.fractional_stance_time = (frac_stance_time_MSB<<1 | frac_stance_time_LSB)*0.25
-        return self.stance_time+self.fractional_stance_time
+        if self.stance_time and self.fractional_stance_time:
+            return self.stance_time+self.fractional_stance_time
+        else:
+            return None
 
     @lazyproperty
     def calculated_step_count(self):
@@ -114,7 +124,9 @@ class RunningDynamicsProfileMessage(ProfileMessage):
         if self.is_data_page_a:
             self.cadence = self.msg.content[1]
             self.fractional_cadence = (self.msg.content[2]& 0b11111)*0.03125
-        return self.cadence + self.fractional_cadence
+        if self.cadence and self.fractional_cadence:
+            return self.cadence + self.fractional_cadence
+        return None
 
     @lazyproperty
     def manufacturer(self):
