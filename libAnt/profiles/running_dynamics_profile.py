@@ -43,11 +43,9 @@ class RunningDynamicsProfileMessage(ProfileMessage):
     def calculated_ground_contact_balance(self):
         if self.is_data_page_b:
             gct_balance = self.msg.content[1] & 0b1111111
-            print("GCT balance ",gct_balance)
             frac_gct_balance_lsb = ((self.msg.content[1] & 0b10000000) >> 7)
             frac_gct_balance_msb = ((self.msg.content[2] & 0b1111)<<1)
             frac_gct_balance = (frac_gct_balance_msb | frac_gct_balance_lsb)*0.03125 
-            print("frac. GCT balance ",frac_gct_balance)
 
             self.ground_contact_balance = gct_balance
             self.fractional_ground_contact_balance = frac_gct_balance
