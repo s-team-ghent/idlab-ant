@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>ANT+ USB MONITORING</title>
+    </head>
+    <body>
+        <style>
+            td{
+                border-bottom: 1px solid gray;
+            }
+        </style>
+        <h2>ANT+ USB Continous monitoring</h2>
+        <p><i>Make sure the Python ANT+ continuous monitoring script runs.</i></p>
+        
+        <h3>Last seen sensors</h3>
+        <p>
+            <button onclick="connectSocket()">Connect</button>
+            <button onclick="disconnectSocket()">Disconnect</button>
+            <button onclick="clearTable()">Clear table</button>
+        </p>
+        
+        <table style="width: 100%;text-align: left;border:1px solid black">
+            <thead>
+                <th>SensorType</th>
+                <th>DeviceID</th>
+                <th>Extended DeviceID</th>
+                <th>Last seen</th>
+                <th>Sensorvalue(s)</th>
+            </thead>
+            <tbody id="sensorValues">
+            </tbody>
+        </table>
+        <script>
+            let socket = null;
+            let socketUri = "ws://localhost:8765"
+        
+            function clearTable(){
+                document.getElementById("sensorValues").innerHTML = ''
+            }
+        
+            function messageCallback(msg){
+                var sensorRow = JSON.parse(msg);
+                var sensorType = sensorRow.deviceType;
+                var output = getSensorData(sensorType, sensorRow.sensorData)
+                var htmlstr =   "<tr property='"+sensorRow.deviceID+"'>"+
+                            "<td>"+sensorRow.deviceType+"</td>"+
+                            "<td>"+sensorRow.deviceID+"</td>"+
+                            "<td>"+sensorRow.extendedDeviceID+"</td>"+
+                            "<td>"+new Date(sensorRow.timestamp*1000)+"</td>"+
+                            "<td>"+output+"</td>"+
+                            "</tr>";
+                if(document.querySelector('[property="'+sensorRow.deviceID+'"]')){
+                    var element = document.querySelector('[property="'+sensorRow.deviceID+'"]')
+                    element.innerHTML = htmlstr;
+                } 
+                else{
+                    document.getElementById("sensorValues").insertAdjacentHTML('beforeend',htmlstr)
+                }
+            }
+        
+            function getSensorData(sensorType, sensorData){
+                switch(sensorType){
+                    case "SpdCad":
+                        return sensorData['speed_m_s']*3.6+"km/h" + " - " + sensorData['cadence']+"RPM"
+                    case "power":
+                        return "Power: "+sensorData['power']+"WATT" + "<br/>Cadence: " + sensorData['cadence']+"RPM"+"<br/>Manufacturer id: "+sensorData['manufacturer_id']
+                    case "heartrate":
+                        return "Heartrate: "+sensorData['heartrate']+"BPM"+"<br/>Manufacturer id: "+sensorData['manufacturer_id']+"<br/>Serial nr: "+sensorData['serial_number']+"<br/>Battery level: "+sensorData['battery_level']+"%"+
+                                "<br/>Battery status: "+sensorData['battery_status']+"<br/>Battery voltage:"+sensorData['battery_voltage']
+                    case "powerCTF":
+                        return "Calculated power: "+sensorData['power']+"WATT" + "<br/>Cadence: " + sensorData['cadence']+"RPM" + "<br/>Torque: " + sensorData["torque"]+"Nm" + "<br/>Offset value: " + sensorData['offset']+"Nm"
+                    case "MuscleOxygen":
+                        return "SMO2: "+sensorData['SMO2']+ "g/dl" + "<br/>Saturation: "+sensorData['Saturation']+"%"
+                    default:    
+                        return ""
+                }
+            }
+        
+            function connectSocket(){
+                socket = new WebSocket(socketUri);
+        
+                socket.onopen = function(e) {
+                    console.log("[open] Connection established");
+                };
+        
+                socket.onmessage = function(event) {
+                    console.log(`[message] Data received from server: ${event.data}`);
+                    messageCallback(event.data)
+                };
+        
+                socket.onclose = function(event) {
+                    if (event.wasClean) {
+                        console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+                    } else {
+                        // e.g. server process killed or network down
+                        // event.code is usually 1006 in this case
+                        console.log('[close] Connection died');
+                    }
+                };
+                socket.onerror = function(error) {
+                    console.log(`[error] ${error.message}`);
+                };
+            }
+        
+            function disconnectSocket(){
+                socket.close()
+            }
+            
+        
+        </script>
+    </body>
+</html>
